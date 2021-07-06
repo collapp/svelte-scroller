@@ -1,4 +1,4 @@
-<script context="module">
+<script context="module" lang="ts">
 	const handlers = [];
 	let manager;
 
@@ -60,7 +60,7 @@
 	}
 </script>
 
-<script>
+<script lang="ts">
 	import { onMount } from 'svelte';
 
 	// config
@@ -69,6 +69,7 @@
 	export let threshold = 0.5;
 	export let query = 'section';
 	export let parallax = false;
+	export let inverted = false;
 
 	// bindings
 	export let index = 0;
@@ -77,22 +78,21 @@
 	export let progress = 0;
 	export let visible = false;
 
-	let outer;
-	let foreground;
-	let background;
-	let left;
-	let sections;
+	let outer: HTMLElement;
+	let foregroundElement: HTMLElement;
+	let backgroundElement: HTMLElement;
+	let left: number;
+	let sections: NodeListOf<Element>;
 	let wh = 0;
-	let fixed;
+	let fixed: boolean;
 	let offset_top = 0;
 	let width = 1;
-	let height;
-	let inverted;
 
 	$: top_px = Math.round(top * wh);
 	$: bottom_px = Math.round(bottom * wh);
 	$: threshold_px = Math.round(threshold * wh);
 
+	//@ts-ignore
 	$: (top, bottom, threshold, parallax, update());
 
 	$: style = `
@@ -105,7 +105,7 @@
 	$: widthStyle = fixed ? `width:${width}px;` : '';
 
 	onMount(() => {
-		sections = foreground.querySelectorAll(query);
+		sections = foregroundElement.querySelectorAll(query);
 		count = sections.length;
 
 		update();
@@ -117,7 +117,7 @@
 	});
 
 	function update() {
-		if (!foreground) return;
+		if (!foregroundElement) return;
 
 		// re-measure outer container
 		const bcr = outer.getBoundingClientRect();
@@ -125,8 +125,8 @@
 		width = bcr.right - left;
 
 		// determine fix state
-		const fg = foreground.getBoundingClientRect();
-		const bg = background.getBoundingClientRect();
+		const fg = foregroundElement.getBoundingClientRect();
+		const bg = backgroundElement.getBoundingClientRect();
 
 		visible = fg.top < wh && fg.bottom > 0;
 
@@ -171,12 +171,12 @@
 
 <svelte-scroller-outer bind:this={outer}>
 	<svelte-scroller-background-container class='background-container' style="{style}{widthStyle}">
-		<svelte-scroller-background bind:this={background}>
-			<slot name="background"></slot>
+		<svelte-scroller-background bind:this={backgroundElement}>
+			<slot name="background" ></slot>
 		</svelte-scroller-background>
 	</svelte-scroller-background-container>
 
-	<svelte-scroller-foreground bind:this={foreground}>
+	<svelte-scroller-foreground bind:this={foregroundElement}>
 		<slot name="foreground"></slot>
 	</svelte-scroller-foreground>
 </svelte-scroller-outer>
